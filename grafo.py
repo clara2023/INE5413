@@ -2,14 +2,12 @@ import numpy as np
 import queue
 
 class Grafo:
-    # Implementation details
     def __init__(self, arquivo: str) -> None:
         # Leitura do arquivo
         with open(arquivo) as file:
             # *vertices n
             self.vertices = int(file.readline().split()[1])
-            total_cells = (self.vertices**2-self.vertices)//2
-            self.grafo = np.ones((total_cells,))*np.inf
+            self.grafo = self.criar_grafo(self.vertices)
             self.graus = np.zeros(self.vertices, dtype=int)
             self.rotulos = np.empty(self.vertices, dtype=object)
             # n rotulo_n
@@ -33,23 +31,6 @@ class Grafo:
                 else:
                     print(f"Aresta ({a}, {b}) já existe!")
 
-    def __getitem__(self, key: int) -> float:
-        i, j = key
-        if j >= self.vertices or i >= self.vertices: raise IndexError("Index out of range")
-        
-        if i < j: return self.grafo[int(self.vertices*i + j - i*(i+1)//2 - i - 1)]
-        if i > j: return self[j, i]
-        if i == j: return 0
-
-    def __setitem__(self, key: int, value: int) -> None:
-        i, j = key
-        if j >= self.vertices or i >= self.vertices: raise IndexError("Index out of range")
-        
-        if i < j: 
-            pos = self.vertices*i + j - i*(i+1)//2 - i - 1
-            self.grafo[pos] = value
-        if i > j: self[j, i] = value
-
     # Vizualizing
     def mostrar_grafo(self) -> None:
         values = [x for x in self.grafo if x != np.inf]
@@ -72,7 +53,7 @@ class Grafo:
                 distances[i, j] = self[i, j]
         return distances
 
-    # Questão 1
+    # Trabalho 1, questão 1
     def qtdVertices(self) -> int:
         return self.vertices
     
@@ -107,7 +88,7 @@ class Grafo:
         for i in range(self.vertices):
             print(f"Vizinhos({self.rotulo(i)}): {self.vizinhos(i)}")
 
-    # Questão 2
+    # Trabalho 1, questão 2
     def busca_em_largura(self, s: int) -> (np.ndarray, np.ndarray):
         visitados = np.zeros(self.vertices, dtype=bool)
         fila = queue.Queue()
@@ -125,7 +106,7 @@ class Grafo:
                     distancias[i] = distancias[atual] + 1
         return (arvore, distancias)
 
-    # Questão 3
+    # Trabalho 1, questão 3
     def ciclo_euleriano(self):
         grafo_copy = self.grafo_completo()
         ciclo_euleriano = []
@@ -170,7 +151,7 @@ class Grafo:
                     return None
         return ciclo_euleriano
 
-    # Questão 4
+    # Trabalho 1, questão 4
     def check_for_negatives(self) -> bool:
         return any(self[i, j] < 0 for i in range(self.vertices) for j in range(i, self.vertices))
     
@@ -212,7 +193,7 @@ class Grafo:
                     fila.put((distancias[i], i))
         return (distancias, origem) if save_path else distancias
 
-    # Questão 5
+    # Trabalho 1, questão 5
     def floyd_warshall(self, save_path=True) -> (np.ndarray, np.ndarray):
         distances = self.grafo_completo()
         origem = np.ones((self.vertices, self.vertices), dtype=int)*-1
@@ -236,3 +217,41 @@ class Grafo:
                             distances[u, v] = -np.inf
         
         return (distances, origem) if save_path else distances
+
+class GrafoDirigido(Grafo):
+    def __init__(self, arquivo: str) -> None:
+        super().__init__(arquivo)
+    
+    def __getitem__(self, key: int) -> float:
+        return self.grafo[key]
+
+    def __setitem__(self, key: int, value: int) -> None:
+        self.grafo[key] = value
+    
+    def criar_grafo(self, vertices: int) -> np.ndarray:
+        return np.ones((vertices, vertices))*np.inf
+
+class GrafoNaoDirigido(Grafo):
+    def __init__(self, arquivo: str) -> None:
+        super().__init__(arquivo)
+    
+    def __getitem__(self, key: int) -> float:
+        i, j = key
+        if j >= self.vertices or i >= self.vertices: raise IndexError("Index out of range")
+        
+        if i > j: i, j = j, i
+        if i < j: return self.grafo[int(self.vertices*i + j - i*(i+1)//2 - i - 1)]
+        return 0
+    
+    def __setitem__(self, key: int, value: int) -> None:
+        i, j = key
+        if j >= self.vertices or i >= self.vertices: raise IndexError("Index out of range")
+
+        if i > j: i, j = j, i        
+        if i == j: return
+        
+        pos = self.vertices*i + j - i*(i+1)//2 - i - 1
+        self.grafo[pos] = value
+
+    def criar_grafo(self, vertices: int) -> np.ndarray:
+        return np.ones((vertices*(vertices-1)//2,))*np.inf
