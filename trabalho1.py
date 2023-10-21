@@ -1,4 +1,5 @@
 import numpy as np
+from grafo import *
 
 def resposta_5(grafo):
     distancias, origem = grafo.floyd_warshall()
@@ -58,3 +59,15 @@ def resposta_2(grafo, s: int) -> (np.ndarray, np.ndarray):
             if distancias[int(j)] == i:
                 string += f" {j}"
         print(string)
+
+def resposta_1(grafo):
+    grafo.mostrar_grafo()
+    print(f"Vertices: {grafo.qtdVertices()}")
+    print(f"Arestas: {grafo.qtdArestas()}")  
+    for i in range(grafo.vertices):
+        print(f"Grau({grafo.rotulo(i)}): {grafo.grau(i)}")
+    for i in range(grafo.vertices):
+        print(f"Vizinhos({grafo.rotulo(i)}): {grafo.vizinhos(i)}")
+
+grafo = GrafoNaoDirigido("grafo.txt")
+resposta_1(grafo)

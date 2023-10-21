@@ -33,7 +33,7 @@ class Grafo:
 
     # Vizualizing
     def mostrar_grafo(self) -> None:
-        values = [x for x in self.grafo if x != np.inf]
+        values = [x for x in self.grafo.flatten() if x != np.inf]
         max_value_size = int(np.ceil(np.log10(max(values))))+2
         print(("T"+"-"*(max_value_size+1))*(self.vertices)+"T")
         for i in range(self.vertices):
@@ -78,15 +78,6 @@ class Grafo:
     
     def peso(self, u: int, v: int) -> float:
         return self[u, v]
-
-    def resposta_1(self):
-        self.mostrar_grafo()
-        print(f"Vertices: {self.qtdVertices()}")
-        print(f"Arestas: {self.qtdArestas()}")  
-        for i in range(self.vertices):
-            print(f"Grau({self.rotulo(i)}): {self.grau(i)}")
-        for i in range(self.vertices):
-            print(f"Vizinhos({self.rotulo(i)}): {self.vizinhos(i)}")
 
     # Trabalho 1, questão 2
     def busca_em_largura(self, s: int) -> (np.ndarray, np.ndarray):
@@ -261,27 +252,23 @@ class Grafo:
     def DFS_OT(self) -> list:
         raise NotImplementedError("Esse tipo de grafo não suporta essa operação")
 
-
-
     def Kruskal(self) -> list:
-        A = []
-        S = []
+        A = set()
+        S = [{i} for i in range(self.vertices)]
+        arestas = queue.PriorityQueue()
+        
+        # Percorrendo a matriz e ordenando suas arestas por peso
         for i in range(self.vertices):
-            S.append([i])
-        arestas = []
-        #percorrendo a matriz
-        for i in range(self.vertices):
-            for j in range(i+1, self.vertices):
-                if self[i, j] != np.inf:
-                    arestas.append([i, j, self[i, j]])
-        arestas = sorted(arestas)
-        for i in range(len(arestas)):
-            u = arestas[i][0]
-            v = arestas[i][1]
+            for j in range(self.vertices):
+                if self[i, j] != np.inf and i != j:
+                    arestas.put((self[i, j], i, j))
+        
+        for i in range(arestas.qsize()):
+            peso, u, v = arestas.get()
             if S[u] != S[v]:
-                #print("S: ", S)
-                A.append([u, v])
-                S[u].append(S[u] + S[v])
+                print("S: ", S)
+                A.add(frozenset((u, v)))
+                S[u] = S[u].union(S[v])
                 S[v] = S[u]
         return A
 
@@ -294,17 +281,22 @@ class Grafo:
         return arestas.pop(aux)
 
     def Prim(self) -> list:
-        #seleciona um vertice aleatorio
+        # seleciona um vertice aleatorio
         r = 0
         predecessors = np.full(self.vertices, -1)
         weight = np.ones(self.vertices)*np.inf
-        Q = []
-        for i in range(self.vertices):
-            Q.append(i)
-        aux = self.arestas
-        while not Q:
-            a = self.lightest(aux)
-            Q.remove(a[1])
+        visited = np.zeros(self.vertices, dtype=bool)
+        Q = queue.PriorityQueue()
+        Q.put((0, r))
+        weight[r] = 0
+        while not Q.empty():
+            u = Q.get()[1]
+            for v in range(self.vertices):
+                if self[u, v] != np.inf and self[u, v] < weight[v] and not visited[v] and u != v:
+                    predecessors[v] = u
+                    weight[v] = self[u, v]
+                    Q.put((weight[v], v))
+        return predecessors
 
 class GrafoDirigido(Grafo):
     def __init__(self, arquivo: str) -> None:
@@ -343,7 +335,7 @@ class GrafoDirigido(Grafo):
         for u in saintes:
             if visited[u] == 0:
                 predecessors[u] = v
-                visited, predecessors, search_time, begin_time, time = self.DFS_Visit(u, visited, predecessors, search_time, begin_time, time, first)
+                visited, predecessors, search_time, begin_time, time = self.DFS_CFC_Visit(u, visited, predecessors, search_time, begin_time, time, first)
         time += 1
         search_time[v] = time
         return visited, predecessors, search_time, begin_time, time
@@ -357,11 +349,11 @@ class GrafoDirigido(Grafo):
             aux = dict(sorted(lista.items(), key=lambda item: item[1], reverse=True))
             for u in aux.keys():
                 if not visited[u]:
-                    self.DFS_Visit(u, visited, predecessors, search_time, begin_time, time, False)
+                    self.DFS_CFC_Visit(u, visited, predecessors, search_time, begin_time, time, False)
         else:
             for u in range(self.vertices):
                 if not visited[u]:
-                    visited, predecessors, search_time, begin_time, time = self.DFS_Visit(u, visited, predecessors, search_time, begin_time, time, True)
+                    visited, predecessors, search_time, begin_time, time = self.DFS_CFC_Visit(u, visited, predecessors, search_time, begin_time, time, True)
         return visited, predecessors, search_time, begin_time, time
 
     def DFS_Visit_OT(self, v, visited, begin_time, search_time, tempo, lista):
