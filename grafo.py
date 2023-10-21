@@ -218,6 +218,94 @@ class Grafo:
         
         return (distances, origem) if save_path else distances
 
+    def transposta(self) -> 'Grafo':
+        return self.grafo_completo().T
+
+    def vizinhos_saintes(self, v: int) -> list:
+        return [i for i in range(self.vertices) if self[v, i] != np.inf and i != v]
+    
+    def vizinhos_saintes_transposta(self, v: int) -> list:
+        return [i for i in range(self.vertices) if self[i, v] != np.inf and i != v]
+
+    # Não funciona
+    def detect_cycle(self) -> bool:
+        visited = np.zeros(self.vertices, dtype=bool)
+        for v in range(self.vertices):
+            if not visited[v]:
+                if self.detect_cycle_visit(v, visited, -1):
+                    return True
+        return False
+    
+    def detect_cycle_visit(self, v: int, visited: list, parent: int) -> bool:
+        visited[v] = True
+        for u in self.vizinhos_saintes(v):
+            if not visited[u]:
+                if self.detect_cycle_visit(u, visited, v):
+                    return True
+            elif u != parent:
+                return True
+        return False
+
+    def DFS_CFC(self) -> list:
+        raise NotImplementedError("Esse tipo de grafo não suporta essa operação")
+
+    def DFS_CFC_Visit(self, v: int, visited: list, predecessors: list, search_time:list, begin_time: list, time, first: bool) -> list:
+        raise NotImplementedError("Esse tipo de grafo não suporta essa operação")
+
+    def DFS_2(self, first: bool, visited: list, predecessors: list, search_time:list, begin_time: list) -> list:
+        raise NotImplementedError("Esse tipo de grafo não suporta essa operação")
+    
+    def DFS_Visit_OT(self, v, visited, begin_time, search_time, tempo, lista):
+        raise NotImplementedError("Esse tipo de grafo não suporta essa operação")
+
+    def DFS_OT(self) -> list:
+        raise NotImplementedError("Esse tipo de grafo não suporta essa operação")
+
+
+
+    def Kruskal(self) -> list:
+        A = []
+        S = []
+        for i in range(self.vertices):
+            S.append([i])
+        arestas = []
+        #percorrendo a matriz
+        for i in range(self.vertices):
+            for j in range(i+1, self.vertices):
+                if self[i, j] != np.inf:
+                    arestas.append([i, j, self[i, j]])
+        arestas = sorted(arestas)
+        for i in range(len(arestas)):
+            u = arestas[i][0]
+            v = arestas[i][1]
+            if S[u] != S[v]:
+                #print("S: ", S)
+                A.append([u, v])
+                S[u].append(S[u] + S[v])
+                S[v] = S[u]
+        return A
+
+    def lightest(self, arestas: list) -> list:
+        menor = np.inf
+        for i in range(len(arestas)):
+            if arestas[i][2] < menor:
+                menor = arestas[i][2]
+                aux = i
+        return arestas.pop(aux)
+
+    def Prim(self) -> list:
+        #seleciona um vertice aleatorio
+        r = 0
+        predecessors = np.full(self.vertices, -1)
+        weight = np.ones(self.vertices)*np.inf
+        Q = []
+        for i in range(self.vertices):
+            Q.append(i)
+        aux = self.arestas
+        while not Q:
+            a = self.lightest(aux)
+            Q.remove(a[1])
+
 class GrafoDirigido(Grafo):
     def __init__(self, arquivo: str) -> None:
         super().__init__(arquivo)
@@ -230,6 +318,76 @@ class GrafoDirigido(Grafo):
     
     def criar_grafo(self, vertices: int) -> np.ndarray:
         return np.ones((vertices, vertices))*np.inf
+    
+    def grafo_completo(self) -> np.ndarray:
+        return self.grafo
+
+    def DFS_CFC(self) -> list:
+        visited = np.zeros(self.vertices, dtype=bool)
+        begin_time = np.ones(self.vertices)*np.inf
+        predecessors = np.full(self.vertices, -1)
+        search_time = np.ones(self.vertices)*np.inf
+        visited, predecessors, search_time, begin_time, time = self.DFS_2(True, visited, predecessors, search_time, begin_time,)
+        visited = np.zeros(self.vertices, dtype=bool)
+        begin_time = np.ones(self.vertices)*np.inf
+        predecessors = np.full(self.vertices, -1)
+        visited, predecessors, search_time, begin_time, time = self.DFS_2(False, visited, predecessors, search_time, begin_time,)
+        return predecessors
+
+    def DFS_CFC_Visit(self, v: int, visited: list, predecessors: list, search_time:list, begin_time: list, time, first: bool) -> list:
+        v = int(v)
+        visited[v] = 1
+        time += 1
+        begin_time[v] = time
+        saintes = self.vizinhos_saintes(v) if first else self.vizinhos_saintes_transposta(v)
+        for u in saintes:
+            if visited[u] == 0:
+                predecessors[u] = v
+                visited, predecessors, search_time, begin_time, time = self.DFS_Visit(u, visited, predecessors, search_time, begin_time, time, first)
+        time += 1
+        search_time[v] = time
+        return visited, predecessors, search_time, begin_time, time
+
+    def DFS_2(self, first: bool, visited: list, predecessors: list, search_time:list, begin_time: list) -> list:
+        time = 0
+        if not first:
+            lista = {}
+            for i in range (search_time.size):
+                lista[i] = search_time[i]
+            aux = dict(sorted(lista.items(), key=lambda item: item[1], reverse=True))
+            for u in aux.keys():
+                if not visited[u]:
+                    self.DFS_Visit(u, visited, predecessors, search_time, begin_time, time, False)
+        else:
+            for u in range(self.vertices):
+                if not visited[u]:
+                    visited, predecessors, search_time, begin_time, time = self.DFS_Visit(u, visited, predecessors, search_time, begin_time, time, True)
+        return visited, predecessors, search_time, begin_time, time
+
+    def DFS_Visit_OT(self, v, visited, begin_time, search_time, tempo, lista):
+        visited[v] = 1
+        tempo += 1
+        begin_time[v] = tempo
+        v_saintes = self.vizinhos_saintes(v)
+        for u in v_saintes:
+            if not visited[u]:
+                lista = self.DFS_Visit_OT(u, visited, begin_time, search_time, tempo, lista)
+        tempo += 1
+        search_time[v] = tempo
+        lista.insert(0, v)
+        return lista
+
+    def DFS_OT(self) -> list:
+        if self.detect_cycle():
+            raise Exception("Grafo cíclico!")
+        visited = np.zeros(self.vertices, dtype=bool)
+        begin_time = np.ones(self.vertices, dtype=int)*np.inf
+        search_time = np.ones(self.vertices, dtype=int)*np.inf
+        tempo = 0
+        lista = []
+        for u in range (self.vertices):
+            if not visited[u]:
+                lista = self.DFS_Visit_OT(u, visited, begin_time, search_time, tempo, lista)
 
 class GrafoNaoDirigido(Grafo):
     def __init__(self, arquivo: str) -> None:
