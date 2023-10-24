@@ -266,7 +266,6 @@ class Grafo:
         for i in range(arestas.qsize()):
             peso, u, v = arestas.get()
             if S[u] != S[v]:
-                print("S: ", S)
                 A.add(frozenset((u, v)))
                 S[u] = S[u].union(S[v])
                 S[v] = S[u]
@@ -370,8 +369,8 @@ class GrafoDirigido(Grafo):
         return lista
 
     def DFS_OT(self) -> list:
-        if self.detect_cycle():
-            raise Exception("Grafo cíclico!")
+        # if self.detect_cycle():
+            # raise Exception("Grafo cíclico!")
         visited = np.zeros(self.vertices, dtype=bool)
         begin_time = np.ones(self.vertices, dtype=int)*np.inf
         search_time = np.ones(self.vertices, dtype=int)*np.inf
@@ -380,6 +379,7 @@ class GrafoDirigido(Grafo):
         for u in range (self.vertices):
             if not visited[u]:
                 lista = self.DFS_Visit_OT(u, visited, begin_time, search_time, tempo, lista)
+        return lista
 
 class GrafoNaoDirigido(Grafo):
     def __init__(self, arquivo: str) -> None:
