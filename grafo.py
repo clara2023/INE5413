@@ -252,34 +252,29 @@ class Grafo:
     def DFS_OT(self) -> list:
         raise NotImplementedError("Esse tipo de grafo não suporta essa operação")
 
-    def Kruskal(self) -> list:
+    def kruskal(self) -> list:
         A = set()
-        S = [{i} for i in range(self.vertices)]
+        S = np.empty(self.qtdVertices(), dtype=object)
+        for i in range(self.qtdVertices()):
+            S[i] = {i}
         arestas = queue.PriorityQueue()
         
         # Percorrendo a matriz e ordenando suas arestas por peso
         for i in range(self.vertices):
-            for j in range(self.vertices):
-                if self[i, j] != np.inf and i != j:
+            for j in range(i+1, self.vertices):
+                if self[i, j] != np.inf:
                     arestas.put((self[i, j], i, j))
         
         for i in range(arestas.qsize()):
             peso, u, v = arestas.get()
             if S[u] != S[v]:
                 A.add(frozenset((u, v)))
-                S[u] = S[u].union(S[v])
-                S[v] = S[u]
+                x = S[u].union(S[v])
+                for y in x:
+                    S[y] = x
         return A
 
-    def lightest(self, arestas: list) -> list:
-        menor = np.inf
-        for i in range(len(arestas)):
-            if arestas[i][2] < menor:
-                menor = arestas[i][2]
-                aux = i
-        return arestas.pop(aux)
-
-    def Prim(self) -> list:
+    def prim(self) -> list:
         # seleciona um vertice aleatorio
         r = 0
         predecessors = np.full(self.vertices, -1)
