@@ -218,25 +218,6 @@ class Grafo:
     def vizinhos_saintes_transposta(self, v: int) -> list:
         return [i for i in range(self.vertices) if self[i, v] != np.inf and i != v]
 
-    # Não funciona
-    def detect_cycle(self) -> bool:
-        visited = np.zeros(self.vertices, dtype=bool)
-        for v in range(self.vertices):
-            if not visited[v]:
-                if self.detect_cycle_visit(v, visited, -1):
-                    return True
-        return False
-    
-    def detect_cycle_visit(self, v: int, visited: list, parent: int) -> bool:
-        visited[v] = True
-        for u in self.vizinhos_saintes(v):
-            if not visited[u]:
-                if self.detect_cycle_visit(u, visited, v):
-                    return True
-            elif u != parent:
-                return True
-        return False
-
     def DFS_CFC(self) -> list:
         raise NotImplementedError("Esse tipo de grafo não suporta essa operação")
 
@@ -290,6 +271,7 @@ class Grafo:
                     predecessors[v] = u
                     weight[v] = self[u, v]
                     Q.put((weight[v], v))
+            visited[u] = True
         return predecessors
 
 class GrafoDirigido(Grafo):
@@ -364,8 +346,6 @@ class GrafoDirigido(Grafo):
         return lista
 
     def DFS_OT(self) -> list:
-        # if self.detect_cycle():
-            # raise Exception("Grafo cíclico!")
         visited = np.zeros(self.vertices, dtype=bool)
         begin_time = np.ones(self.vertices, dtype=int)*np.inf
         search_time = np.ones(self.vertices, dtype=int)*np.inf
