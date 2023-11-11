@@ -391,7 +391,7 @@ class GrafoDirigido(Grafo):
     def edmonds_karp(self, s: int, t: int) -> float:
         p = set()  # no idea where this one came from
         C = np.zeros(self.qtdVertices(), dtype=bool)
-        A = np.empty(self.qtdVertices())
+        A = np.ones(self.qtdVertices())*-1
         C[s] = True
         Q = queue.Queue()
         while not Q.empty():
@@ -434,3 +434,55 @@ class GrafoNaoDirigido(Grafo):
 
     def criar_grafo(self, vertices: int) -> np.ndarray:
         return np.ones((vertices*(vertices-1)//2,))*np.inf
+
+class GrafoBipartido(GrafoNaoDirigido):
+    def __init__(self, arquivo: str) -> None:
+        super().__init__(arquivo)
+        self.X = set()
+        self.Y = set()
+    
+    def bipartir(self, X: list[int]):
+        for v in range(self.qtdVertices()):
+            if v in X:
+                self.X.add(v)
+            else:
+                self.Y.add(v)
+    
+    def hopcroft_karp(self):
+        D = np.ones(self.qtdVertices()+1)*np.inf
+        mate = np.ones(self.qtdVertices())*-1
+        m = 0
+        while self.hopcroft_karp_bfs(mate, D):
+            for x in self.X:
+                if mate[x] == -1 and self.hopcroft_karp_dfs(x, mate, D):
+                    m += 1
+        return m, mate
+
+    def hopcroft_karp_bfs(self, mate, D):
+        Q = queue.Queue()
+        for x in self.X:
+            if mate[x] == -1:
+                D[x] = 0
+                Q.put(x)
+            else:
+                D[x] = np.inf
+        D[-1] = np.inf
+        while not Q.empty():
+            x = Q.get()
+            if D[x] < D[-1]:
+                for y in range(self.qtdVertices()):
+                    if self[x, y] != np.inf and x != y and D[mate[y]] == np.inf:
+                        D[mate[y]] = D[x] + 1
+                        Q.put(mate[y])
+        return D[-1] != np.inf
+    
+    def hopcroft_karp_dfs(self, x, mate, D):
+        if x != -1:
+            for y in range(self.qtdVertices()):
+                if self[x, y] != np.inf and x != y and D[mate[y]] == D[x] + 1 and self.hopcroft_karp_dfs(mate[y], mate, D):
+                    mate[y] = x
+                    mate[x] = y
+                    return True
+            D[x] = np.inf
+            return False
+        return True
