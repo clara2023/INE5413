@@ -356,6 +356,60 @@ class GrafoDirigido(Grafo):
                 lista = self.DFS_Visit_OT(u, visited, begin_time, search_time, tempo, lista)
         return lista
 
+    # Trabalho 3
+    def edmonds_karp_copilot(self, s: int, t: int) -> float:
+        if s == t: return 0
+        max_flow = 0
+        flow = np.zeros((self.vertices, self.vertices))
+        while True:
+            predecessor = np.ones(self.vertices, dtype=int)*-1
+            predecessor[s] = -2
+            fila = queue.Queue()
+            fila.put(s)
+            while not fila.empty() and predecessor[t] == -1:
+                u = fila.get()
+                for v in range(self.vertices):
+                    if predecessor[v] == -1 and self[u, v] - flow[u, v] > 0:
+                        predecessor[v] = u
+                        fila.put(v)
+            if predecessor[t] == -1: break
+            path_flow = np.inf
+            v = t
+            while v != s:
+                u = predecessor[v]
+                path_flow = min(path_flow, self[u, v] - flow[u, v])
+                v = u
+            v = t
+            while v != s:
+                u = predecessor[v]
+                flow[u, v] += path_flow
+                flow[v, u] -= path_flow
+                v = u
+            max_flow += path_flow
+        return max_flow
+
+    def edmonds_karp(self, s: int, t: int) -> float:
+        p = set()  # no idea where this one came from
+        C = np.zeros(self.qtdVertices(), dtype=bool)
+        A = np.empty(self.qtdVertices())
+        C[s] = True
+        Q = queue.Queue()
+        while not Q.empty():
+            u = Q.get()
+            for v in range(self.qtdVertices()):
+                if self[u, v] and u != v and not C[v]: # and what is CF(u,v) > 0
+                    C[v] = True
+                    A[v] = u
+                    if v == t:
+                        p = {t}
+                        w = t
+                        while w != s:
+                            w = A[w]
+                            p = p.union({w})
+                        return p
+                    Q.put(u)
+        return None
+
 class GrafoNaoDirigido(Grafo):
     def __init__(self, arquivo: str) -> None:
         super().__init__(arquivo)
