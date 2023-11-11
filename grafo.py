@@ -1,8 +1,16 @@
 import numpy as np
 import queue
+from itertools import chain, combinations
 
 class Grafo:
     def __init__(self, arquivo: str) -> None:
+        if arquivo == "":
+            self.grafo = self.empty_graph()
+            self.vertices = 0
+            self.arestas = 0
+            self.graus = np.zeros(self.vertices, dtype=int)
+            self.rotulos = np.empty(self.vertices, dtype=object)
+            return
         # Leitura do arquivo
         with open(arquivo) as file:
             # *vertices n
@@ -30,6 +38,10 @@ class Grafo:
                     self.graus[b-1] += 1
                 else:
                     print(f"Aresta ({a}, {b}) já existe!")
+
+    @staticmethod
+    def empty_graph():
+        return Grafo("")
 
     # Vizualizing
     def mostrar_grafo(self) -> None:
@@ -413,7 +425,7 @@ class GrafoDirigido(Grafo):
 class GrafoNaoDirigido(Grafo):
     def __init__(self, arquivo: str) -> None:
         super().__init__(arquivo)
-    
+
     def __getitem__(self, key: int) -> float:
         i, j = key
         if j >= self.vertices or i >= self.vertices: raise IndexError("Index out of range")
@@ -434,6 +446,32 @@ class GrafoNaoDirigido(Grafo):
 
     def criar_grafo(self, vertices: int) -> np.ndarray:
         return np.ones((vertices*(vertices-1)//2,))*np.inf
+
+    def lawler(self):
+        def powerset(iterable):  # Jesus Cristo me liberte desse mal
+            s = list(iterable)
+            return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
+        X = {}
+        X[0] = 0
+        S_powerset = powerset(range(self.vertices))
+        for S in S_powerset:
+            s = set(S)
+            X[s] = np.inf
+            G_ = self.subgrafo(S)
+
+    def subgrafo(self, S):
+        grafo_novo = GrafoNaoDirigido("")
+        grafo_novo.grafo = self.grafo.copy()
+        grafo_novo.vertices = len(S)
+        grafo_novo.graus = np.zeros(grafo_novo.vertices, dtype=int)
+        grafo_novo.rotulos = np.empty(grafo_novo.vertices, dtype=object)
+        for i in range(grafo_novo.vertices):
+            grafo_novo.rotulos[i] = self.rotulos[i]
+            for j in range(grafo_novo.vertices):
+                grafo_novo[i, j] = self[S[i], S[j]]
+                if grafo_novo[i, j] != np.inf and i != j:
+                    grafo_novo.graus[i] += 1
+        return grafo_novo
 
 class GrafoBipartido(GrafoNaoDirigido):
     def __init__(self, arquivo: str) -> None:
