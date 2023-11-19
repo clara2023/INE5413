@@ -14,7 +14,7 @@ class Grafo:
             for _ in range(self.vertices):
                 vertice, *rotulo = file.readline().split()
                 rotulo = ' '.join(rotulo)[1:-1]
-                self.rotulos[int(vertice)-1] = rotulo
+                self.rotulos[int(vertice)-1] = rotulo.strip('"')
 
             # *edges
             file.readline()
