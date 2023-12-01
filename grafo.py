@@ -5,11 +5,12 @@ from itertools import chain, combinations
 class Grafo:
     def __init__(self, arquivo: str) -> None:
         if arquivo == "":
-            self.grafo = self.empty_graph()
+            self.grafo = None
             self.vertices = 0
             self.arestas = 0
             self.graus = np.zeros(self.vertices, dtype=int)
             self.rotulos = np.empty(self.vertices, dtype=object)
+            self.vizinhos = np.empty(self.vertices, dtype=object)
             return
         # Leitura do arquivo
         with open(arquivo) as file:
@@ -39,14 +40,6 @@ class Grafo:
                 else:
                     print(f"Aresta ({a}, {b}) já existe!")
                 self.add_neighbour(a, b)
-
-    @staticmethod
-    def empty_graph():
-        return Grafo("")
-
-    @staticmethod
-    def empty_graph():
-        return Grafo("")
 
     # Vizualizing
     def mostrar_grafo(self) -> None:
@@ -468,7 +461,7 @@ class GrafoNaoDirigido(Grafo):
         X[0] = 0
         S_powerset = powerset(range(self.vertices))
         for S in S_powerset:
-            s = set(S)
+            s = frozenset(S)
             X[s] = np.inf
             G_ = self.subgrafo(S)
 
