@@ -15,7 +15,7 @@ class Grafo:
                 vertice, *rotulo = file.readline().split()
                 rotulo = ' '.join(rotulo)[1:-1]
                 self.rotulos[int(vertice)-1] = rotulo.strip('"')
-
+            self._vizinhos = np.empty(self.qtdVertices(), dtype=object)
             # *edges
             file.readline()
             self.arestas = 0
@@ -30,6 +30,7 @@ class Grafo:
                     self.graus[b-1] += 1
                 else:
                     print(f"Aresta ({a}, {b}) já existe!")
+                self.add_neighbour(a, b)
 
     # Vizualizing
     def mostrar_grafo(self) -> None:
@@ -66,12 +67,10 @@ class Grafo:
     def rotulo(self, v: int) -> str: 
         return self.rotulos[v]
 
-    def vizinhos(self, v: int) -> list[str]:
-        vizinhos = []
-        for i in range(self.vertices):
-            if self[v, i] != np.inf and i != v:
-                vizinhos.append(self.rotulo(i))
-        return vizinhos
+    def vizinhos(self, v: int) -> list[int]:
+        return self._vizinhos[v]
+
+    def add_neighbour(a, b): raise NotImplementedError("Método abstrato")
 
     def haAresta(self, u: int, v: int) -> bool:
         return self[u, v] != np.inf
@@ -290,6 +289,12 @@ class GrafoDirigido(Grafo):
     def grafo_completo(self) -> np.ndarray:
         return self.grafo
 
+    def add_neighbour(self, a, b):
+        if self._vizinhos[a-1] is None:
+            self._vizinhos[a-1] = [b-1]
+        else:
+            self._vizinhos[a-1].append(b-1)
+
     def DFS_CFC(self) -> list:
         visited = np.zeros(self.vertices, dtype=bool)
         begin_time = np.ones(self.vertices)*np.inf
@@ -380,3 +385,14 @@ class GrafoNaoDirigido(Grafo):
 
     def criar_grafo(self, vertices: int) -> np.ndarray:
         return np.ones((vertices*(vertices-1)//2,))*np.inf
+
+    def add_neighbour(self, a, b):
+        if self._vizinhos[a-1] is None:
+            self._vizinhos[a-1] = [b-1]
+        else:
+            self._vizinhos[a-1].append(b-1)
+
+        if self._vizinhos[b-1] is None:
+            self._vizinhos[b-1] = [a-1]
+        else:
+            self._vizinhos[b-1].append(a-1)
