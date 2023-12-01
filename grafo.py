@@ -381,7 +381,7 @@ class GrafoDirigido(Grafo):
             while not fila.empty() and predecessor[t] == -1:
                 u = fila.get()
                 for v in range(self.vertices):
-                    if predecessor[v] == -1 and self[u, v] - flow[u, v] > 0:
+                    if predecessor[v] == -1 and self[u, v] != np.inf and u != v and self[u, v] - flow[u, v] > 0:
                         predecessor[v] = u
                         fila.put(v)
             if predecessor[t] == -1: break
