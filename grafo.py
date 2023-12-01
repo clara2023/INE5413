@@ -459,9 +459,9 @@ class GrafoNaoDirigido(Grafo):
             return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
         X = {}
         X[0] = 0
-        S_powerset = powerset(range(self.vertices))
-        for S in S_powerset:
-            s = frozenset(S)
+        S_powerset = list(powerset(range(self.vertices)))
+        for s in range(len(S_powerset)):
+            S = S_powerset[s]
             X[s] = np.inf
             G_ = self.subgrafo(S)
 
