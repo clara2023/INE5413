@@ -1,7 +1,7 @@
 from grafo import *
 
 def resposta_1(grafo, s, t):
-    valor = grafo.edmonds_karp_copilot(s, t)
+    valor = grafo.edmonds_karp(s, t)
     print(valor)
 
 

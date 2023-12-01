@@ -378,21 +378,12 @@ class GrafoDirigido(Grafo):
         return lista
 
     # Trabalho 3
-    def edmonds_karp_copilot(self, s: int, t: int) -> float:
+    def edmonds_karp(self, s: int, t: int) -> float:
         if s == t: return 0
         max_flow = 0
         flow = np.zeros((self.vertices, self.vertices))
         while True:
-            predecessor = np.ones(self.vertices, dtype=int)*-1
-            predecessor[s] = -2
-            fila = queue.Queue()
-            fila.put(s)
-            while not fila.empty() and predecessor[t] == -1:
-                u = fila.get()
-                for v in range(self.vertices):
-                    if predecessor[v] == -1 and self[u, v] != np.inf and u != v and self[u, v] - flow[u, v] > 0:
-                        predecessor[v] = u
-                        fila.put(v)
+            predecessor = self.edmonds_karp_bfs(s, t, flow)
             if predecessor[t] == -1: break
             path_flow = np.inf
             v = t
@@ -409,27 +400,18 @@ class GrafoDirigido(Grafo):
             max_flow += path_flow
         return max_flow
 
-    def edmonds_karp(self, s: int, t: int) -> float:
-        p = set()  # no idea where this one came from
-        C = np.zeros(self.qtdVertices(), dtype=bool)
-        A = np.ones(self.qtdVertices())*-1
-        C[s] = True
-        Q = queue.Queue()
-        while not Q.empty():
-            u = Q.get()
-            for v in range(self.qtdVertices()):
-                if self[u, v] and u != v and not C[v]: # and what is CF(u,v) > 0
-                    C[v] = True
-                    A[v] = u
-                    if v == t:
-                        p = {t}
-                        w = t
-                        while w != s:
-                            w = A[w]
-                            p = p.union({w})
-                        return p
-                    Q.put(u)
-        return None
+    def edmonds_karp_bfs(self, s, t, flow_graph):
+        predecessor = np.ones(self.vertices, dtype=int)*-1
+        predecessor[s] = -2
+        fila = queue.Queue()
+        fila.put(s)
+        while not fila.empty() and predecessor[t] == -1:
+            u = fila.get()
+            for v in self.vizinhos(u):
+                if predecessor[v] == -1 and self[u, v] - flow_graph[u, v] > 0:
+                    predecessor[v] = u
+                    fila.put(v)
+        return predecessor
 
 class GrafoNaoDirigido(Grafo):
     def __init__(self, arquivo: str) -> None:
