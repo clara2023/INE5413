@@ -44,12 +44,12 @@ class Grafo:
     # Vizualizing
     def mostrar_grafo(self) -> None:
         values = [x for x in self.grafo.flatten() if x != np.inf]
-        max_value_size = int(np.ceil(np.log10(max(values))))+2
+        max_value_size = int(np.ceil(np.log10(max(np.abs(values)))))+4
         print(("T"+"-"*(max_value_size+1))*(self.vertices)+"T")
         for i in range(self.vertices):
             for j in range(self.vertices):
                 coisa = self[i, j] if self[i, j] != np.inf else "∞"
-                print(f"|{coisa:^8}", end="")
+                print(f"|{str(coisa).center(max_value_size+1, ' ')}", end="")
             print("|")
             if i == self.vertices-1:
                 print(("⊥"+"-"*(max_value_size+1))*(self.vertices)+"⊥")
