@@ -461,12 +461,44 @@ class GrafoNaoDirigido(Grafo):
         X = {}
         X[0] = 0
         S_powerset = list(powerset(range(self.vertices)))
-        for s in range(len(S_powerset)):
-            S = S_powerset[s]
+        for S in S_powerset:
+            if len(S) == 0: continue
+            s = S_powerset.index(S)
             X[s] = np.inf
             G_ = self.subgrafo(S)
+            R = self.conjuntos_independentes(G_)
+            print(R)
+            for I in R:
+                a = set(S) - I
+                i = S_powerset.index(I)
+                print("I: ", I)
+                print(X[i])
+                print(X[s])
+                if X[i] + 1 < X[s]:
+                    print("teste")
+                    X[s] = X[i] + 1
+        print("X: ", X)
         return X[len(X)-1]
 
+    def conjuntos_independentes(self, grafo: 'GrafoNaoDirigido'):
+        def powerset(iterable):
+            s = list(iterable)
+            return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))        
+        R = set()
+        S_powerset = list(powerset(range(grafo.vertices)))
+        c = False
+        for s in S_powerset:
+            if len(s) == 0: continue
+            c = True
+            for i in s:
+                for j in s:
+                    if grafo[i, j] != np.inf and i != j:
+                        c = False
+                        break
+            if c: R = R.union({frozenset(s)})
+        print(R)
+        return R
+    
     def subgrafo(self, S):
         grafo_novo = GrafoNaoDirigido("")
         grafo_novo.grafo = self.grafo.copy()
