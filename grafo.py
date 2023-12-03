@@ -1,6 +1,6 @@
 import numpy as np
 import queue
-from itertools import chain, combinations
+from itertools import combinations
 
 class Grafo:
     def __init__(self, arquivo: str) -> None:
@@ -282,6 +282,12 @@ class Grafo:
             visited[u] = True
         return predecessors
 
+    @staticmethod
+    def powerset(my_set: set[any]) -> list[frozenset[any]]:
+        for n in range(len(my_set)+1):
+            for subset in combinations(my_set, n):
+                yield frozenset(subset)
+
 class GrafoDirigido(Grafo):
     def __init__(self, arquivo: str) -> None:
         super().__init__(arquivo)
@@ -455,53 +461,39 @@ class GrafoNaoDirigido(Grafo):
             self._vizinhos[b-1].append(a-1)
 
     def lawler(self):
-        def powerset(iterable):  # Jesus Cristo me liberte desse mal
-            s = list(iterable)
-            return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
         X = {}
         X[0] = 0
-        S_powerset = list(powerset(range(self.vertices)))
-        for S in S_powerset:
-            if len(S) == 0: continue
+        S_powerset = [subset for subset in self.powerset(range(self.vertices))]
+        for S in S_powerset[1:]:
             s = S_powerset.index(S)
             X[s] = np.inf
-            G_ = self.subgrafo(S)
-            R = self.conjuntos_independentes(G_)
-            print(R)
+            # G_ = self.subgrafo(list(S))
+            R = self.conjuntos_independentes(list(S))
             for I in R:
-                a = set(S) - I
-                i = S_powerset.index(I)
-                print("I: ", I)
-                print(X[i])
-                print(X[s])
+                print(X)
+                i = S_powerset.index(set(S) - I)
+                print(i, set(S) - I, I)
                 if X[i] + 1 < X[s]:
-                    print("teste")
                     X[s] = X[i] + 1
-        print("X: ", X)
         return X[len(X)-1]
 
-    def conjuntos_independentes(self, grafo: 'GrafoNaoDirigido'):
-        def powerset(iterable):
-            s = list(iterable)
-            return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))        
+    def conjuntos_independentes(self, subgraph_vertices: list):      
         R = set()
-        S_powerset = list(powerset(range(grafo.vertices)))
-        c = False
-        for s in S_powerset:
-            if len(s) == 0: continue
+        S = self.powerset(range(len(subgraph_vertices)))
+        for X in S:
             c = True
-            for i in s:
-                for j in s:
-                    if grafo[i, j] != np.inf and i != j:
+            for v in X:
+                for u in X:
+                    if self[u, v] != np.inf and u != v and u in subgraph_vertices and v in subgraph_vertices:
                         c = False
                         break
-            if c: R = R.union({frozenset(s)})
-        print(R)
+            if c:
+                R = R.union({frozenset(X)})
         return R
     
     def subgrafo(self, S):
         grafo_novo = GrafoNaoDirigido("")
-        grafo_novo.grafo = self.grafo.copy()
+        grafo_novo.grafo = np.ones((len(S), len(S)))*np.inf
         grafo_novo.vertices = len(S)
         grafo_novo.graus = np.zeros(grafo_novo.vertices, dtype=int)
         grafo_novo.rotulos = np.empty(grafo_novo.vertices, dtype=object)
