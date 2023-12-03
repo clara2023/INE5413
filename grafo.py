@@ -39,7 +39,7 @@ class Grafo:
                     self.graus[b-1] += 1
                 else:
                     print(f"Aresta ({a}, {b}) já existe!")
-                self.add_neighbour(a, b)
+                self.add_neighbour(int(a), int(b))
 
     # Vizualizing
     def mostrar_grafo(self) -> None:
@@ -377,6 +377,7 @@ class GrafoDirigido(Grafo):
         flow = np.zeros((self.vertices, self.vertices))
         while True:
             predecessor = self.edmonds_karp_bfs(s, t, flow)
+            print(predecessor)
             if predecessor[t] == -1: break
             path_flow = np.inf
             v = t
@@ -464,6 +465,7 @@ class GrafoNaoDirigido(Grafo):
             S = S_powerset[s]
             X[s] = np.inf
             G_ = self.subgrafo(S)
+        return X[len(X)-1]
 
     def subgrafo(self, S):
         grafo_novo = GrafoNaoDirigido("")
@@ -493,7 +495,7 @@ class GrafoBipartido(GrafoNaoDirigido):
                 self.Y.add(v)
     
     def hopcroft_karp(self):
-        D = np.ones(self.qtdVertices()+1)*np.inf
+        D = np.ones(self.qtdVertices())*np.inf
         mate = np.ones(self.qtdVertices())*-1
         m = 0
         while self.hopcroft_karp_bfs(mate, D):
@@ -512,20 +514,20 @@ class GrafoBipartido(GrafoNaoDirigido):
                 D[x] = np.inf
         D[-1] = np.inf
         while not Q.empty():
-            x = Q.get()
-            if D[x] < D[-1]:
-                for y in range(self.qtdVertices()):
-                    if self[x, y] != np.inf and x != y and D[mate[y]] == np.inf:
-                        D[mate[y]] = D[x] + 1
+            x = int(Q.get())
+            if D[int(x)] < D[-1]:
+                for y in self.vizinhos(x):
+                    if D[int(mate[y])] == np.inf:
+                        D[int(mate[y])] = D[x] + 1
                         Q.put(mate[y])
         return D[-1] != np.inf
     
     def hopcroft_karp_dfs(self, x, mate, D):
         if x != -1:
             for y in range(self.qtdVertices()):
-                if self[x, y] != np.inf and x != y and D[mate[y]] == D[x] + 1 and self.hopcroft_karp_dfs(mate[y], mate, D):
+                if self[x, y] != np.inf and x != y and D[int(mate[y])] == D[int(x)] + 1 and self.hopcroft_karp_dfs(mate[y], mate, D):
                     mate[y] = x
-                    mate[x] = y
+                    mate[int(x)] = y
                     return True
             D[x] = np.inf
             return False
