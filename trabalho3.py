@@ -1,20 +1,32 @@
 from grafo import *
 import sys
 
+# CONFIGURAÇÃO DAS ENTRADAS
+
+# Nome do arquivo utilizado na entrada
+entrada = "grafo.txt"
+if len(sys.argv) > 1:
+    entrada = sys.argv[1]
+
+# Qual questão será executada ['1', '2', '3']
+escolha = '0'
+
+# Vértices para o fluxo máximo, se os valores forem negativos, serão pedidos na execução
+s = -1
+t = -1
+
+# Vértices para a bipartição, se a lista for vazia, será pedida na execução
+X = []
+# Descomente a linha abaixo para bipartir o grafo meio a meio
+# X = [i for i in range(grafo.qtdVertices() // 2)]
+
+
+# RESPOSTAS, não alterar nada abaixo
 def resposta_1(grafo, s, t):
     valor = grafo.edmonds_karp(s, t)
     print("Maximum flow: ", valor)
 
-def resposta_2():
-    grafo = GrafoBipartido("grafo.txt")
-    X = []
-    escolha = input("Deseja selecionar os vertices do conjunto X? (s/n): ").upper()
-    if escolha == "N":
-        n = grafo.qtdVertices() // 2
-        X = [i for i in range(n)]
-    else:
-        X = [int(i)-1 for i in input("Digite os vertices do conjunto X separados por espaco. Não comece do índice 0: ").split()]
-    grafo.bipartir(X)
+def resposta_2(grafo):
     m, mate = grafo.hopcroft_karp()
     print("m: ", m)
     printed = {}
@@ -26,28 +38,28 @@ def resposta_2():
             print("Mate:", a, ",", b)
     # for i in range(len(mate)):
     #     print("Mate:", grafo.rotulo(i), ",", grafo.rotulo(mate[i])) 
-def resposta_3():
-    grafo = GrafoNaoDirigido("grafo.txt")
+
+def resposta_3(grafo):
     valor_cor = grafo.lawler()
-    print(valor_cor)
+    print("Minimum coloring value: ", valor_cor)
 
-
-entrada = "grafo.txt"
-escolha = '0'
-
-if len(sys.argv) > 1:
-    entrada = sys.argv[1]
-
+# EXECUÇÃO
 while escolha not in '123':
     escolha = input("Qual questão? ")
 
 if escolha == '1':
-    s = int(input("Vértice de origem: "))
-    t = int(input("Vértice de destino: "))
-    
+    if s < 0: s = int(input("Vértice de origem: "))
+    if t < 0: t = int(input("Vértice de destino: "))
+    grafo = GrafoDirigido(entrada)
+    resposta_1(grafo, s, t)
+
 if escolha == '2':
-    pass
+    grafo = GrafoBipartido(entrada)
+    if len(X) == 0:
+        X = [int(i)-1 for i in input("Digite os vertices do conjunto X separados por espaço. Não comece do índice 0: ").split()]
+    grafo.bipartir(X)
+    resposta_2(grafo)
 
 if escolha == '3':
-    pass
->>>>>>> Stashed changes
+    grafo = GrafoNaoDirigido(entrada)
+    resposta_3(grafo)
