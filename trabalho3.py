@@ -1,4 +1,5 @@
 from grafo import *
+import sys
 
 def resposta_1(grafo, s, t):
     valor = grafo.edmonds_karp(s, t)
@@ -27,10 +28,26 @@ def resposta_2():
     #     print("Mate:", grafo.rotulo(i), ",", grafo.rotulo(mate[i])) 
 def resposta_3():
     grafo = GrafoNaoDirigido("grafo.txt")
-    a = grafo.lawler()
-    print(a)
+    valor_cor = grafo.lawler()
+    print(valor_cor)
 
-grafo = GrafoDirigido("grafo.txt")
-#resposta_1(grafo, 0, 5) # 0, n-1 vertices
-resposta_2()
-#resposta_3()
+
+entrada = "grafo.txt"
+escolha = '0'
+
+if len(sys.argv) > 1:
+    entrada = sys.argv[1]
+
+while escolha not in '123':
+    escolha = input("Qual questão? ")
+
+if escolha == '1':
+    s = int(input("Vértice de origem: "))
+    t = int(input("Vértice de destino: "))
+    
+if escolha == '2':
+    pass
+
+if escolha == '3':
+    pass
+>>>>>>> Stashed changes

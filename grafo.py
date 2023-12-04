@@ -10,7 +10,7 @@ class Grafo:
             self.arestas = 0
             self.graus = np.zeros(self.vertices, dtype=int)
             self.rotulos = np.empty(self.vertices, dtype=object)
-            self.vizinhos = np.empty(self.vertices, dtype=object)
+            self.vizinhos_ = np.array([set() for _ in range(self.vertices)])
             return
         # Leitura do arquivo
         with open(arquivo) as file:
@@ -19,12 +19,12 @@ class Grafo:
             self.grafo = self.criar_grafo(self.vertices)
             self.graus = np.zeros(self.vertices, dtype=int)
             self.rotulos = np.empty(self.vertices, dtype=object)
+            self.vizinhos_ = np.array([set() for _ in range(self.vertices)])
             # n rotulo_n
             for _ in range(self.vertices):
                 vertice, *rotulo = file.readline().split()
                 rotulo = ' '.join(rotulo)[1:-1]
                 self.rotulos[int(vertice)-1] = rotulo.strip('"')
-            self._vizinhos = np.empty(self.qtdVertices(), dtype=object)
             # *edges
             file.readline()
             self.arestas = 0
@@ -76,8 +76,8 @@ class Grafo:
     def rotulo(self, v: int) -> str: 
         return self.rotulos[v]
 
-    def vizinhos(self, v: int) -> list[int]:
-        return self._vizinhos[v]
+    def vizinhos(self, v: int) -> set[int]:
+        return self.vizinhos_[v]
 
     def add_neighbour(a, b): raise NotImplementedError("Método abstrato")
 
@@ -305,10 +305,7 @@ class GrafoDirigido(Grafo):
         return self.grafo
 
     def add_neighbour(self, a, b):
-        if self._vizinhos[a-1] is None:
-            self._vizinhos[a-1] = [b-1]
-        else:
-            self._vizinhos[a-1].append(b-1)
+        self.vizinhos_[a-1].add(b-1)
 
     def DFS_CFC(self) -> list:
         visited = np.zeros(self.vertices, dtype=bool)
@@ -439,29 +436,11 @@ class GrafoNaoDirigido(Grafo):
         return np.ones((vertices*(vertices-1)//2,))*np.inf
 
     def add_neighbour(self, a, b):
-        if self._vizinhos[a-1] is None:
-            self._vizinhos[a-1] = [b-1]
-        else:
-            self._vizinhos[a-1].append(b-1)
-
-        if self._vizinhos[b-1] is None:
-            self._vizinhos[b-1] = [a-1]
-        else:
-            self._vizinhos[b-1].append(a-1)
-
-    def add_neighbour(self, a, b):
-        if self._vizinhos[a-1] is None:
-            self._vizinhos[a-1] = [b-1]
-        else:
-            self._vizinhos[a-1].append(b-1)
-
-        if self._vizinhos[b-1] is None:
-            self._vizinhos[b-1] = [a-1]
-        else:
-            self._vizinhos[b-1].append(a-1)
+        self.vizinhos_[a-1].add(b-1)
+        self.vizinhos_[b-1].add(a-1)
 
     def lawler(self):
-        X = {}
+        X = np.empty((2**self.qtdVertices()), dtype=float)
         X[0] = 0
         S_powerset = [subset for subset in self.powerset(range(self.vertices))]
         for S in S_powerset[1:]:
@@ -470,12 +449,10 @@ class GrafoNaoDirigido(Grafo):
             # G_ = self.subgrafo(list(S))
             R = self.conjuntos_independentes(list(S))
             for I in R:
-                print(X)
                 i = S_powerset.index(set(S) - I)
-                print(i, set(S) - I, I)
                 if X[i] + 1 < X[s]:
                     X[s] = X[i] + 1
-        return X[len(X)-1]
+        return int(X[len(X)-1])
 
     def conjuntos_independentes(self, subgraph_vertices: list):      
         R = set()
