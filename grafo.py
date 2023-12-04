@@ -445,15 +445,14 @@ class GrafoNaoDirigido(Grafo):
         for S in S_powerset[1:]:
             s = S_powerset.index(S)
             X[s] = np.inf
-            # G_ = self.subgrafo(list(S))
-            R = self.conjuntos_independentes(list(S))
+            R = self.conjuntos_independentes(S)
             for I in R:
                 i = S_powerset.index(set(S) - I)
                 if X[i] + 1 < X[s]:
                     X[s] = X[i] + 1
         return int(X[len(X)-1])
 
-    def conjuntos_independentes(self, subgraph_vertices: list):      
+    def conjuntos_independentes(self, subgraph_vertices: frozenset[int]) -> set[frozenset[int]]:
         R = set()
         S = self.powerset(range(len(subgraph_vertices)))
         for X in S:
@@ -466,20 +465,6 @@ class GrafoNaoDirigido(Grafo):
             if c:
                 R = R.union({frozenset(X)})
         return R
-    
-    def subgrafo(self, S):
-        grafo_novo = GrafoNaoDirigido("")
-        grafo_novo.grafo = np.ones((len(S), len(S)))*np.inf
-        grafo_novo.vertices = len(S)
-        grafo_novo.graus = np.zeros(grafo_novo.vertices, dtype=int)
-        grafo_novo.rotulos = np.empty(grafo_novo.vertices, dtype=object)
-        for i in range(grafo_novo.vertices):
-            grafo_novo.rotulos[i] = self.rotulos[i]
-            for j in range(grafo_novo.vertices):
-                grafo_novo[i, j] = self[S[i], S[j]]
-                if grafo_novo[i, j] != np.inf and i != j:
-                    grafo_novo.graus[i] += 1
-        return grafo_novo
 
 class GrafoBipartido(GrafoNaoDirigido):
     def __init__(self, arquivo: str) -> None:
