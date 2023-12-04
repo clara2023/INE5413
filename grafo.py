@@ -380,7 +380,6 @@ class GrafoDirigido(Grafo):
         flow = np.zeros((self.vertices, self.vertices))
         while True:
             predecessor = self.edmonds_karp_bfs(s, t, flow)
-            print(predecessor)
             if predecessor[t] == -1: break
             path_flow = np.inf
             v = t

@@ -17,9 +17,8 @@ t = -1
 
 # Vértices para a bipartição, se a lista for vazia, será pedida na execução
 X = []
-# Descomente a linha abaixo para bipartir o grafo meio a meio
-# X = [i for i in range(grafo.qtdVertices() // 2)]
-
+# Mude o valor de preencher_X_automaticamente para True para bipartir o grafo meio a meio
+preencher_X_automaticamente = False
 
 # RESPOSTAS, não alterar nada abaixo
 def resposta_1(grafo, s, t):
@@ -36,8 +35,6 @@ def resposta_2(grafo):
         printed[b] = a
         if a not in printed:
             print("Mate:", a, ",", b)
-    # for i in range(len(mate)):
-    #     print("Mate:", grafo.rotulo(i), ",", grafo.rotulo(mate[i])) 
 
 def resposta_3(grafo):
     valor_cor = grafo.lawler()
@@ -55,6 +52,8 @@ if escolha == '1':
 
 if escolha == '2':
     grafo = GrafoBipartido(entrada)
+    if preencher_X_automaticamente:
+        X = list(range(grafo.qtdVertices() // 2))
     if len(X) == 0:
         X = [int(i)-1 for i in input("Digite os vertices do conjunto X separados por espaço. Não comece do índice 0: ").split()]
     grafo.bipartir(X)
