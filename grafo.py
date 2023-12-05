@@ -439,7 +439,7 @@ class GrafoNaoDirigido(Grafo):
         self.vizinhos_[b-1].add(a-1)
 
     def lawler(self):
-        X = np.empty((2**self.qtdVertices()), dtype=float)
+        X = np.zeros((2**self.qtdVertices()), dtype=float)
         X[0] = 0
         S_powerset = [subset for subset in self.powerset(range(self.vertices))]
         for S in S_powerset[1:]:
@@ -447,14 +447,14 @@ class GrafoNaoDirigido(Grafo):
             X[s] = np.inf
             R = self.conjuntos_independentes(S)
             for I in R:
-                i = S_powerset.index(set(S) - I)
+                i = S_powerset.index(S - I)
                 if X[i] + 1 < X[s]:
                     X[s] = X[i] + 1
-        return int(X[len(X)-1])
+        return int(X[-1])
 
     def conjuntos_independentes(self, subgraph_vertices: frozenset[int]) -> set[frozenset[int]]:
         R = set()
-        S = self.powerset(range(len(subgraph_vertices)))
+        S = self.powerset(subgraph_vertices)
         for X in S:
             c = True
             for v in X:
